@@ -180,22 +180,6 @@ docker compose start magazzino-service
 
 ---
 
-## Domande
-
-**"Come garantisci che un evento non vada perso anche se il servizio crasha?"**
-→ Outbox pattern: `ordini/.../service/OrdineService.java` — outbox scritto nella stessa transazione DB dell'ordine. Il relay legge con `FOR UPDATE SKIP LOCKED`.
-
-**"Cosa succede se Kafka ridelivera lo stesso messaggio due volte?"**
-→ Idempotenza: `*/service/ProcessedEventInserter.java` — `INSERT INTO processed_events ... ON CONFLICT DO NOTHING`. Se ritorna 0 righe, l'evento è già stato processato.
-
-**"Come gestisci il rollback di una transazione distribuita?"**
-→ Saga choreography: `pagamenti/.../consumer/MerceConsumer.java` — ogni servizio pubblica un compensating event. Non c'è un coordinatore centrale.
-
-**"Come eviti fallimenti a cascata verso servizi esterni?"**
-→ `pagamenti/.../service/GatewayBancaClient.java` — `@CircuitBreaker` Resilience4j: dopo 5 fallimenti apre il circuito e bypassa il gateway per 30s, evitando di intasare il thread pool con chiamate destinate a fallire.
-
----
-
 ## Stack tecnico
 
 - Java 17 (Amazon Corretto), Spring Boot 3.3.5
