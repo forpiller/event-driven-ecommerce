@@ -8,3 +8,6 @@ target/
 
 # Classi .class finite per errore nella root (estrazione di una libreria shaded)
 /com/
+
+docs/superpowers/
+.superpowers/
