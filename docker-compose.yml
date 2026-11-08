@@ -1,0 +1,142 @@
+version: '3.8'
+
+services:
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+
+  kafka:
+    image: confluentinc/cp-kafka:7.6.0
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT_HOST://0.0.0.0:9092,PLAINTEXT_INTERNAL://0.0.0.0:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT_HOST://localhost:9092,PLAINTEXT_INTERNAL://kafka:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT_HOST:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTERNAL
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    depends_on:
+      - kafka
+    ports:
+      - "8091:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+
+  postgres-ordini:
+    image: postgres:15
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: ordini_db
+      POSTGRES_USER: ordini
+      POSTGRES_PASSWORD: ordini
+    volumes:
+      - postgres-ordini-data:/var/lib/postgresql/data
+
+  postgres-pagamenti:
+    image: postgres:15
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: pagamenti_db
+      POSTGRES_USER: pagamenti
+      POSTGRES_PASSWORD: pagamenti
+    volumes:
+      - postgres-pagamenti-data:/var/lib/postgresql/data
+
+  postgres-magazzino:
+    image: postgres:15
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_DB: magazzino_db
+      POSTGRES_USER: magazzino
+      POSTGRES_PASSWORD: magazzino
+    volumes:
+      - postgres-magazzino-data:/var/lib/postgresql/data
+
+  postgres-notifiche:
+    image: postgres:15
+    ports:
+      - "5435:5432"
+    environment:
+      POSTGRES_DB: notifiche_db
+      POSTGRES_USER: notifiche
+      POSTGRES_PASSWORD: notifiche
+    volumes:
+      - postgres-notifiche-data:/var/lib/postgresql/data
+
+  ordini-service:
+    build: ./ordini
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      DB_URL: jdbc:postgresql://postgres-ordini:5432/ordini_db
+      DB_USER: ordini
+      DB_PASSWORD: ordini
+    depends_on:
+      - kafka
+      - postgres-ordini
+
+  pagamenti-service:
+    build: ./pagamenti
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      DB_URL: jdbc:postgresql://postgres-pagamenti:5432/pagamenti_db
+      DB_USER: pagamenti
+      DB_PASSWORD: pagamenti
+    depends_on:
+      - kafka
+      - postgres-pagamenti
+
+  magazzino-service:
+    build: ./magazzino
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      DB_URL: jdbc:postgresql://postgres-magazzino:5432/magazzino_db
+      DB_USER: magazzino
+      DB_PASSWORD: magazzino
+    depends_on:
+      - kafka
+      - postgres-magazzino
+
+  notifiche-service:
+    build: ./notifiche
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      DB_URL: jdbc:postgresql://postgres-notifiche:5432/notifiche_db
+      DB_USER: notifiche
+      DB_PASSWORD: notifiche
+    depends_on:
+      - kafka
+      - postgres-notifiche
+
+volumes:
+  postgres-ordini-data:
+  postgres-pagamenti-data:
+  postgres-magazzino-data:
+  postgres-notifiche-data:

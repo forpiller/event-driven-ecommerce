@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kafka — Guida pratica per sviluppatori</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 15px;
+      line-height: 1.7;
+      color: #1a1a2e;
+      background: #fff;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 48px 40px;
+    }
+
+    /* Cover */
+    .cover {
+      text-align: center;
+      padding: 60px 0 48px;
+      border-bottom: 3px solid #4f46e5;
+      margin-bottom: 48px;
+    }
+    .cover .badge {
+      display: inline-block;
+      background: #4f46e5;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+    }
+    .cover h1 {
+      font-size: 36px;
+      font-weight: 800;
+      color: #1a1a2e;
+      margin-bottom: 12px;
+      line-height: 1.2;
+    }
+    .cover .subtitle {
+      font-size: 18px;
+      color: #6b7280;
+      font-weight: 400;
+    }
+
+    /* Sections */
+    h2 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #1a1a2e;
+      margin: 40px 0 14px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #e5e7eb;
+    }
+    h3 {
+      font-size: 16px;
+      font-weight: 700;
+      color: #4f46e5;
+      margin: 28px 0 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    p { margin-bottom: 14px; }
+
+    /* Callout boxes */
+    .callout {
+      border-left: 4px solid #4f46e5;
+      background: #f5f3ff;
+      padding: 16px 20px;
+      border-radius: 0 8px 8px 0;
+      margin: 20px 0;
+    }
+    .callout.green {
+      border-color: #10b981;
+      background: #ecfdf5;
+    }
+    .callout.amber {
+      border-color: #f59e0b;
+      background: #fffbeb;
+    }
+    .callout strong { display: block; margin-bottom: 6px; color: #1a1a2e; }
+
+    /* Code / flow blocks */
+    pre {
+      background: #1e1e2e;
+      color: #cdd6f4;
+      padding: 20px 24px;
+      border-radius: 10px;
+      font-family: 'SF Mono', 'Fira Code', 'Menlo', monospace;
+      font-size: 13px;
+      line-height: 1.8;
+      margin: 16px 0;
+      overflow-x: auto;
+    }
+    code {
+      background: #f3f4f6;
+      color: #4f46e5;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'SF Mono', 'Fira Code', 'Menlo', monospace;
+      font-size: 13px;
+    }
+    pre code { background: none; color: inherit; padding: 0; }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      font-size: 14px;
+    }
+    th {
+      background: #4f46e5;
+      color: #fff;
+      padding: 10px 16px;
+      text-align: left;
+      font-weight: 600;
+    }
+    td {
+      padding: 10px 16px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    tr:nth-child(even) td { background: #f9fafb; }
+    tr:last-child td { border-bottom: none; }
+
+    /* Analogy card */
+    .analogy {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 20px 0;
+    }
+    .analogy-card {
+      border: 2px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 18px 20px;
+    }
+    .analogy-card .label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: #9ca3af;
+      margin-bottom: 6px;
+    }
+    .analogy-card .term {
+      font-size: 18px;
+      font-weight: 700;
+      color: #4f46e5;
+      margin-bottom: 8px;
+    }
+    .analogy-card p { font-size: 14px; margin-bottom: 0; color: #374151; }
+
+    /* Flow diagram */
+    .flow {
+      background: #1e1e2e;
+      border-radius: 10px;
+      padding: 24px 28px;
+      margin: 16px 0;
+    }
+    .flow-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+    .flow-step:last-child { margin-bottom: 0; }
+    .flow-num {
+      background: #4f46e5;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .flow-content { flex: 1; }
+    .flow-service {
+      font-weight: 700;
+      color: #a78bfa;
+      font-family: 'SF Mono', monospace;
+      font-size: 13px;
+    }
+    .flow-action { color: #6b7280; font-size: 13px; }
+    .flow-topic {
+      display: inline-block;
+      background: #312e81;
+      color: #c7d2fe;
+      font-family: 'SF Mono', monospace;
+      font-size: 12px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-top: 4px;
+    }
+    .flow-arrow {
+      color: #4f46e5;
+      font-size: 18px;
+      margin-left: 38px;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    /* Print */
+    @media print {
+      body { padding: 20px 30px; font-size: 13px; }
+      .cover { padding: 30px 0 30px; }
+      .cover h1 { font-size: 28px; }
+      h2 { font-size: 18px; page-break-after: avoid; }
+      h3 { page-break-after: avoid; }
+      pre, .flow, table { page-break-inside: avoid; }
+      .callout { page-break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- COVER -->
+  <div class="cover">
+    <div class="badge">Guida tecnica</div>
+    <h1>Apache Kafka<br>per sviluppatori backend</h1>
+    <p class="subtitle">Cos'è, come funziona e quando usarlo rispetto a un task manager</p>
+  </div>
+
+  <!-- 1. IL PROBLEMA -->
+  <h2>1. Il problema che Kafka risolve</h2>
+
+  <p>
+    Immagina un'architettura con più microservizi. L'approccio più semplice è la
+    chiamata <strong>sincrona</strong>: il servizio A chiama il servizio B via REST,
+    aspetta la risposta e continua.
+  </p>
+
+  <div class="callout amber">
+    <strong>Il problema della comunicazione sincrona</strong>
+    Se il servizio B è lento, A aspetta. Se B va in crash, la richiesta di A si perde.
+    Se devi notificare 5 servizi dello stesso evento, A deve chiamarli tutti e 5.
+    Il sistema diventa fragile e strettamente accoppiato.
+  </div>
+
+  <p>
+    Kafka risolve questo introducendo la comunicazione <strong>asincrona a eventi</strong>:
+    i servizi non si chiamano direttamente, ma pubblicano messaggi su canali condivisi
+    da cui gli altri leggono quando sono pronti.
+  </p>
+
+  <!-- 2. ANALOGIA -->
+  <h2>2. La cassetta postale condivisa</h2>
+
+  <p>
+    Il modo più semplice per capire Kafka è pensarlo come una <strong>cassetta postale condivisa</strong>
+    con categorie separate.
+  </p>
+
+  <div class="analogy">
+    <div class="analogy-card">
+      <div class="label">Mondo reale</div>
+      <div class="term">Cassetta postale</div>
+      <p>Imbuchi una lettera in una categoria specifica. Il destinatario la leggerà quando è pronto. Tu non aspetti.</p>
+    </div>
+    <div class="analogy-card">
+      <div class="label">Apache Kafka</div>
+      <div class="term">Topic</div>
+      <p>Un servizio pubblica un messaggio su un topic. Gli altri servizi lo leggono quando sono pronti. Il mittente non aspetta.</p>
+    </div>
+    <div class="analogy-card">
+      <div class="label">Mondo reale</div>
+      <div class="term">Mittente</div>
+      <p>Chiunque può imbustare una lettera in qualsiasi categoria. Non conosce e non controlla chi la leggerà.</p>
+    </div>
+    <div class="analogy-card">
+      <div class="label">Apache Kafka</div>
+      <div class="term">Producer</div>
+      <p>Il servizio che pubblica messaggi su un topic. Non conosce i consumatori: pubblica e va avanti.</p>
+    </div>
+    <div class="analogy-card">
+      <div class="label">Mondo reale</div>
+      <div class="term">Destinatario</div>
+      <p>Legge le lettere della sua categoria quando vuole. Le lettere restano nella cassetta anche se è fuori.</p>
+    </div>
+    <div class="analogy-card">
+      <div class="label">Apache Kafka</div>
+      <div class="term">Consumer</div>
+      <p>Il servizio che legge messaggi da un topic. Se è temporaneamente down, i messaggi lo aspettano.</p>
+    </div>
+  </div>
+
+  <!-- 3. CONCETTI CHIAVE -->
+  <h2>3. I concetti chiave</h2>
+
+  <h3>Broker</h3>
+  <p>
+    Il <strong>broker</strong> è il server Kafka — il processo che riceve i messaggi dai producer,
+    li conserva su disco e li consegna ai consumer. In produzione si usano almeno 3 broker
+    per alta disponibilità. In sviluppo ne basta uno.
+  </p>
+
+  <h3>Topic</h3>
+  <p>
+    Un <strong>topic</strong> è una categoria di messaggi. È come una tabella in un database
+    append-only: i messaggi vengono aggiunti in coda e non vengono mai modificati.
+    Ogni topic ha un nome che descrive l'evento, per convenzione in kebab-case:
+  </p>
+  <pre>ordine.creato
+pagamento.eseguito
+merce.riservata
+merce.non.disponibile
+pagamento.rimborsato</pre>
+
+  <h3>Partizione</h3>
+  <p>
+    Ogni topic è diviso in <strong>partizioni</strong> — segmenti paralleli che permettono
+    a più consumer di leggere contemporaneamente e aumentare il throughput.
+    Ogni messaggio viene scritto in una partizione in base alla chiave del messaggio
+    (stesso orderId → stessa partizione → garanzia di ordine per quell'ordine).
+  </p>
+
+  <h3>Offset</h3>
+  <p>
+    L'<strong>offset</strong> è la posizione di un messaggio dentro una partizione — un numero
+    incrementale. Ogni consumer group tiene traccia del proprio offset: sa fino a dove ha letto
+    e riparte da lì se va in crash e si riavvia.
+  </p>
+
+  <h3>Consumer Group</h3>
+  <p>
+    Un <strong>consumer group</strong> è un insieme di istanze dello stesso servizio che cooperano
+    per leggere un topic. Kafka garantisce che ogni messaggio venga consegnato a
+    <em>una sola</em> istanza del gruppo — utile per lo scaling orizzontale senza
+    processare lo stesso messaggio due volte.
+  </p>
+
+  <!-- 4. FLUSSO -->
+  <h2>4. Il flusso di un'architettura event-driven</h2>
+
+  <p>
+    Esempio concreto: un e-commerce con saga choreography.
+    Nessun servizio chiama direttamente un altro — tutto passa per i topic Kafka.
+  </p>
+
+  <div class="flow">
+    <div class="flow-step">
+      <div class="flow-num">1</div>
+      <div class="flow-content">
+        <div class="flow-service">ordini-service</div>
+        <div class="flow-action">riceve la richiesta REST dal client, crea l'ordine in stato PENDING</div>
+        <div class="flow-topic">→ pubblica su: ordine.creato</div>
+      </div>
+    </div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-step">
+      <div class="flow-num">2</div>
+      <div class="flow-content">
+        <div class="flow-service">pagamenti-service</div>
+        <div class="flow-action">legge ordine.creato, contatta la banca, esegue il pagamento</div>
+        <div class="flow-topic">→ pubblica su: pagamento.eseguito</div>
+      </div>
+    </div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-step">
+      <div class="flow-num">3</div>
+      <div class="flow-content">
+        <div class="flow-service">magazzino-service</div>
+        <div class="flow-action">legge pagamento.eseguito, scala la quantità disponibile</div>
+        <div class="flow-topic">→ pubblica su: merce.riservata</div>
+      </div>
+    </div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-step">
+      <div class="flow-num">4</div>
+      <div class="flow-content">
+        <div class="flow-service">ordini-service</div>
+        <div class="flow-action">legge merce.riservata, aggiorna lo stato dell'ordine</div>
+        <div class="flow-topic">→ stato ordine: CONFERMATO ✓</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout green">
+    <strong>Il punto chiave</strong>
+    Ogni servizio sa solo cosa ascoltare e cosa pubblicare. Non conosce gli altri servizi.
+    Aggiungere un nuovo servizio (es. notifiche) significa solo far leggere i suoi topic —
+    zero modifiche agli altri servizi.
+  </div>
+
+  <!-- 5. SCENARI DI FAULT -->
+  <h2>5. Resilienza: cosa succede quando qualcosa va storto</h2>
+
+  <h3>Scenario 1 — Merce non disponibile (compensazione)</h3>
+  <p>
+    Se magazzino non ha scorte, invece di <code>merce.riservata</code> pubblica
+    <code>merce.non.disponibile</code>. Pagamenti lo legge e pubblica
+    <code>pagamento.rimborsato</code>. Ordini aggiorna lo stato in CANCELLATO.
+    Nessuna transazione distribuita — ogni servizio si "compensa" da solo reagendo agli eventi.
+    Questo è il pattern <strong>Saga Choreography</strong>.
+  </p>
+
+  <h3>Scenario 2 — Servizio temporaneamente down</h3>
+  <p>
+    Se magazzino-service va in crash, i messaggi su <code>pagamento.eseguito</code>
+    restano nel topic. Quando si riavvia, li legge dall'ultimo offset e continua.
+    Nessun messaggio perso — è una delle garanzie fondamentali di Kafka.
+  </p>
+
+  <h3>Scenario 3 — Messaggio processato due volte</h3>
+  <p>
+    Un consumer può crashare <em>dopo</em> aver processato un messaggio ma <em>prima</em>
+    di aggiornare l'offset. Al riavvio rielabora lo stesso messaggio.
+    Si protegge con il pattern <strong>idempotenza</strong>: ogni messaggio ha un
+    <code>eventId</code> univoco, e prima di processarlo si controlla se è già stato
+    inserito in una tabella <code>processed_events</code>. Se sì, si ignora.
+  </p>
+
+  <!-- 6. KAFKA UI -->
+  <h2>6. Kafka UI — cosa vedi nella dashboard</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Sezione</th>
+        <th>Cosa mostra</th>
+        <th>Utile per</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Brokers</strong></td>
+        <td>I server Kafka attivi, partizioni online, stato di salute</td>
+        <td>Verificare che il cluster sia up</td>
+      </tr>
+      <tr>
+        <td><strong>Topics</strong></td>
+        <td>Lista dei topic con numero di messaggi e dimensione</td>
+        <td>Vedere quanti eventi sono stati prodotti</td>
+      </tr>
+      <tr>
+        <td><strong>Topic → Messages</strong></td>
+        <td>Il JSON raw di ogni messaggio pubblicato</td>
+        <td>Debug: vedere il contratto tra i servizi</td>
+      </tr>
+      <tr>
+        <td><strong>Consumers</strong></td>
+        <td>I consumer group attivi e il loro lag (messaggi non ancora letti)</td>
+        <td>Verificare che i servizi stiano leggendo senza ritardi</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>
+    Il <strong>consumer lag</strong> è la metrica più importante in produzione:
+    indica quanti messaggi sono in coda non ancora processati. Un lag che cresce
+    significa che i consumer non riescono a stare al passo con i producer.
+  </p>
+
+  <!-- 7. KAFKA VS TASK MANAGER -->
+  <h2>7. Kafka vs Task Manager — quando usare quale</h2>
+
+  <p>
+    Kafka non è l'unico modo per gestire operazioni asincrone. Un'alternativa più
+    semplice è un <strong>task manager</strong>: un microservizio dedicato che riceve
+    richieste di esecuzione differita e le smaltisce in background.
+  </p>
+
+  <h3>Task Manager — come funziona</h3>
+  <p>
+    Il servizio A chiama il task manager via REST: <em>"esegui questo task con questi parametri"</em>.
+    Il task manager salva il task su database e lo esegue in modo asincrono,
+    aggiornando lo stato (PENDING → IN_PROGRESS → DONE / ERROR).
+    Il servizio A può fare polling o ricevere una callback quando il task è completato.
+  </p>
+
+  <table>
+    <thead>
+      <tr>
+        <th></th>
+        <th>Apache Kafka</th>
+        <th>Task Manager (custom)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Tipo</strong></td>
+        <td>Message broker esterno</td>
+        <td>Microservizio custom</td>
+      </tr>
+      <tr>
+        <td><strong>Modello comunicazione</strong></td>
+        <td>Publish / Subscribe</td>
+        <td>Request / Execute</td>
+      </tr>
+      <tr>
+        <td><strong>Disaccoppiamento</strong></td>
+        <td>Totale: producer non conosce consumer</td>
+        <td>Parziale: il chiamante conosce il task manager</td>
+      </tr>
+      <tr>
+        <td><strong>Replay messaggi</strong></td>
+        <td>Sì — i messaggi restano sul disco per giorni/settimane</td>
+        <td>No — un task eseguito non viene rieseguito</td>
+      </tr>
+      <tr>
+        <td><strong>Multi-consumer</strong></td>
+        <td>Sì — N servizi possono leggere lo stesso evento</td>
+        <td>No — un task ha un solo esecutore</td>
+      </tr>
+      <tr>
+        <td><strong>Throughput</strong></td>
+        <td>Milioni di messaggi/secondo</td>
+        <td>Dipende dal DB, più limitato</td>
+      </tr>
+      <tr>
+        <td><strong>Complessità operativa</strong></td>
+        <td>Alta (broker, Zookeeper/KRaft, consumer groups...)</td>
+        <td>Bassa (è un'app Spring Boot con un DB)</td>
+      </tr>
+      <tr>
+        <td><strong>Visibilità</strong></td>
+        <td>Kafka UI, consumer lag</td>
+        <td>Query diretta sul DB dei task</td>
+      </tr>
+      <tr>
+        <td><strong>Adatto per</strong></td>
+        <td>Event streaming, saghe, molti servizi interconnessi</td>
+        <td>Task puntuali: export PDF, invio email, report asincroni</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <strong>Come scegliere</strong>
+    Usa Kafka quando hai <strong>molti servizi</strong> che devono reagire agli stessi eventi
+    e hai bisogno di disaccoppiamento forte e scalabilità elevata.<br><br>
+    Usa un task manager quando hai <strong>operazioni asincrone puntuali</strong>
+    (un PDF da generare, una mail da mandare) e vuoi semplicità operativa senza
+    gestire un'infrastruttura Kafka.
+  </div>
+
+  <!-- GLOSSARIO -->
+  <h2>8. Glossario rapido</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Termine</th>
+        <th>Significato</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Broker</strong></td><td>Il server Kafka che gestisce i messaggi</td></tr>
+      <tr><td><strong>Topic</strong></td><td>Canale di messaggi per categoria di evento</td></tr>
+      <tr><td><strong>Partizione</strong></td><td>Suddivisione parallela di un topic per scalabilità</td></tr>
+      <tr><td><strong>Offset</strong></td><td>Posizione di un messaggio dentro una partizione</td></tr>
+      <tr><td><strong>Producer</strong></td><td>Servizio che pubblica messaggi su un topic</td></tr>
+      <tr><td><strong>Consumer</strong></td><td>Servizio che legge messaggi da un topic</td></tr>
+      <tr><td><strong>Consumer Group</strong></td><td>Gruppo di istanze che cooperano per leggere un topic</td></tr>
+      <tr><td><strong>Consumer Lag</strong></td><td>Numero di messaggi non ancora letti da un consumer group</td></tr>
+      <tr><td><strong>Saga Choreography</strong></td><td>Pattern di transazione distribuita basato su eventi senza orchestratore centrale</td></tr>
+      <tr><td><strong>Idempotenza</strong></td><td>Proprietà per cui processare lo stesso messaggio N volte produce lo stesso risultato di processarlo una volta</td></tr>
+      <tr><td><strong>Outbox Pattern</strong></td><td>Tecnica per garantire che un evento Kafka venga pubblicato solo se la transazione DB è andata a buon fine</td></tr>
+    </tbody>
+  </table>
+
+</body>
+</html>

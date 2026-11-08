@@ -1,0 +1,10 @@
+target/
+*.jar
+*.war
+.env
+.idea/
+*.iml
+.DS_Store
+
+# Classi .class finite per errore nella root (estrazione di una libreria shaded)
+/com/
